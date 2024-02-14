@@ -21,13 +21,15 @@ jobs:
       - name: Extract AutoHotkey
         run: Expand-Archive -Path "ahk.zip" -DestinationPath "AutoHotkey"
 
-      - name: What the hell and where
-        run: Get-Childitem -Path "${{ github.workspace }}\Autohotkey\Compiler\Ahk2Exe.exe"
-
       - name: Compile AHK Script to Executable
         run: |
-          & "${{ github.workspace }}\Autohotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk" /out "${{ github.workspace }}\Jiggler.exe"
+          & "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk" /out "${{ github.workspace }}\Jiggler.exe"
 
+      - name: Upload Compiled Executable
+        uses: actions/upload-artifact@v2
+        with:
+          name: compiled-exe
+          path: ${{ github.workspace }}/Jiggler.exe
 
   release:
     needs: build
