@@ -17,25 +17,17 @@ jobs:
       
       - name: Install AutoHotkey
         run: choco install autohotkey
-      
-      - name: Verify AutoHotkey Installation and Find Ahk2Exe
-        run: |
-          choco list --local-only | Select-String 'autohotkey'
-          Get-ChildItem -Path 'C:\' -Filter Ahk2Exe.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 
       - name: Compile AHK Script to Executable
         run: |
-          $AutoHotkey = "C:\ProgramData\chocolatey\bin\AutoHotkey.exe"
-          $ScriptPath = "Jiggler.ahk"
-          $OutputExe = "Jiggler.exe"
-          if (Test-Path $AutoHotkey) {
-            & $AutoHotkey /ErrorStdOut /i"$OutputExe" $ScriptPath
+          $AhkCompiler = "C:\ProgramData\chocolatey\lib\autohotkey\tools\Compiler\Ahk2Exe.exe" # Adjust based on typical installation path
+          if (Test-Path $AhkCompiler) {
+            & "$AhkCompiler" /in Jiggler.ahk /out Jiggler.exe
           } else {
-            Write-Error "AutoHotkey.exe not found"
+            Write-Error "Ahk2Exe.exe not found - check AutoHotkey installation path"
             exit 1
           }
-
-
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
