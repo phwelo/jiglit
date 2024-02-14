@@ -14,20 +14,23 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
-      
-      - name: Install AutoHotkey
-        run: choco install autohotkey
-        
+
+      - name: Download AutoHotkey
+        run: Invoke-WebRequest -Uri "https://www.autohotkey.com/download/ahk.zip" -OutFile "ahk.zip"
+
+      - name: Extract AutoHotkey
+        run: Expand-Archive -Path "ahk.zip" -DestinationPath "AutoHotkey"
+
       - name: Compile AHK Script to Executable
         run: |
-          $Env:Path += ";C:\ProgramData\chocolatey\bin"
-          Ahk2Exe /in Jiggler.ahk /out Jiggler.exe
-      
+          .\AutoHotkey\Compiler\Ahk2Exe.exe /in Jiggler.ahk /out Jiggler.exe
+
       - name: Upload Compiled Executable
         uses: actions/upload-artifact@v2
         with:
           name: Jiggler.exe
           path: ./Jiggler.exe
+
 
   release:
     needs: build
