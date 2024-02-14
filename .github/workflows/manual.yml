@@ -22,7 +22,7 @@ jobs:
         run: Expand-Archive -Path "ahk.zip" -DestinationPath "AutoHotkey"
 
       - name: What the hell and where
-        run: Get-Childitem -Path "${{ github.workspace }}"" -Recurse
+        run: Get-Childitem -Path "${{ github.workspace }}" -Recurse
 
   release:
     needs: build
