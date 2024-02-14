@@ -1,31 +1,49 @@
-name: Compile AHK to EXE
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
 jobs:
   build:
-    name: Compile AutoHotkey Script
     runs-on: windows-latest
-
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v2
+      
+      - name: Compile AHK Script to Executable
+        run: cmd /c '"C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" /in Jiggler.ahk /out Jiggler.exe'
+      
+      # Your existing steps for setup, compilation, and artifact upload
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: compiled-exe
+          path: Jiggler.exe
 
-    - name: Set up AutoHotkey
-      run: |
-        choco install autohotkey
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: compiled-exe
+          path: dist
 
-    - name: Compile AHK Script to Executable
-      run: cmd /c '"C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" /in Jiggler.ahk /out Jiggler.exe'
-
-    - name: Upload Executable as Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: Jiggler-Executable
-        path: Jiggler.exe
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+          body: "New release of Jiggler"
+      
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/Jiggler.exe
+          asset_name: Jiggler.exe
+          asset_content_type: application/octet-stream
