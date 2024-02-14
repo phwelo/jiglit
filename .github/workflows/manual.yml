@@ -23,10 +23,10 @@ jobs:
 
       - name: Compile AHK Script to Executable
         run: |
-          & "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk" /out "${{ github.workspace }}\Jiggler.exe"
+          & "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk"
 
       - name: Verify Path
-        run: Get-ChildItem -Path "${{ github.workspace }}"
+        run: Get-ChildItem -Path "${{ github.workspace }}" -Recurse
 
       - name: Upload Compiled Executable
         uses: actions/upload-artifact@v2
