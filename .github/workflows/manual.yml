@@ -17,22 +17,17 @@ jobs:
       
       - name: Install AutoHotkey
         run: choco install autohotkey
-
+        
       - name: Compile AHK Script to Executable
         run: |
-          $AhkCompiler = "C:\ProgramData\chocolatey\lib\autohotkey\tools\Compiler\Ahk2Exe.exe" # Adjust based on typical installation path
-          if (Test-Path $AhkCompiler) {
-            & "$AhkCompiler" /in Jiggler.ahk /out Jiggler.exe
-          } else {
-            Write-Error "Ahk2Exe.exe not found - check AutoHotkey installation path"
-            exit 1
-          }
+          $Env:Path += ";C:\ProgramData\chocolatey\bin"
+          Ahk2Exe /in Jiggler.ahk /out Jiggler.exe
       
-      - name: Upload artifact
+      - name: Upload Compiled Executable
         uses: actions/upload-artifact@v2
         with:
-          name: compiled-exe
-          path: Jiggler.exe
+          name: Jiggler.exe
+          path: ./Jiggler.exe
 
   release:
     needs: build
