@@ -20,7 +20,7 @@ jobs:
       
       - name: Verify AutoHotkey Installation and Find Ahk2Exe
         run: |
-          choco list autohotkey -l
+          choco list --local-only | Select-String 'autohotkey'
           Get-ChildItem -Path 'C:\' -Filter Ahk2Exe.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 
       - name: Compile AHK Script to Executable
