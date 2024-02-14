@@ -23,13 +23,17 @@ jobs:
 
       - name: Compile AHK Script to Executable
         run: |
-          .\AutoHotkey\Compiler\Ahk2Exe.exe /in Jiggler.ahk /out Jiggler.exe
+          & "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" /in Jiggler.ahk /out "${{ github.workspace }}\Jiggler.exe"
+
+      - name: List files in the directory
+        run: |
+          Get-ChildItem "${{ github.workspace }}", "${{ github.workspace }}\dist" -Recurse
 
       - name: Upload Compiled Executable
         uses: actions/upload-artifact@v2
         with:
           name: Jiggler.exe
-          path: ./Jiggler.exe
+          path: ${{ github.workspace }}\Jiggler.exe
 
 
   release:
