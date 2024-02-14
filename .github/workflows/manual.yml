@@ -22,8 +22,7 @@ jobs:
         choco install autohotkey
 
     - name: Compile AHK Script to Executable
-      run: |
-        "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" /in Jiggler.ahk /out Jiggler.exe
+      run: cmd /c '"C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" /in Jiggler.ahk /out Jiggler.exe'
 
     - name: Upload Executable as Artifact
       uses: actions/upload-artifact@v2
