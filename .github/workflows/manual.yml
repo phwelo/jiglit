@@ -25,6 +25,9 @@ jobs:
         run: |
           & "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk" /out "${{ github.workspace }}\Jiggler.exe"
 
+      - name: Verify Path
+        run: Get-ChildItem -Path "${{ github.workspace }}"
+
       - name: Upload Compiled Executable
         uses: actions/upload-artifact@v2
         with:
