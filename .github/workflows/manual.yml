@@ -18,23 +18,27 @@ jobs:
       - name: Download AutoHotkey
         run: Invoke-WebRequest -Uri "https://www.autohotkey.com/download/ahk.zip" -OutFile "ahk.zip"
 
+      - name: Verify Download
+        run: Get-Item -Path "ahk.zip"
+
       - name: Extract AutoHotkey
         run: Expand-Archive -Path "ahk.zip" -DestinationPath "AutoHotkey"
 
-      - name: Verify Unzip
-        run: Get-ChildItem -Path "${{ github.workspace }}" -Recurse
+      - name: Verify Extraction
+        run: Get-ChildItem -Path "AutoHotkey"
 
       - name: Compile AHK Script to Executable
-        run: "${{ github.workspace }}\\AutoHotkey\\Compiler\\Ahk2Exe.exe" /in "${{ github.workspace }}\\Jiggler.ahk"
+        run: |
+          & "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk" /out "${{ github.workspace }}\Jiggler.exe"
 
-      - name: Verify Compiled File
-        run: Get-ChildItem -Path "${{ github.workspace }}" -Recurse
+      - name: Verify Compilation
+        run: Get-ChildItem -Recurse
 
       - name: Upload Compiled Executable
         uses: actions/upload-artifact@v2
         with:
           name: compiled-exe
-          path: ${{ github.workspace }}\Jiggler.exe
+          path: ${{ github.workspace }}/Jiggler.exe
 
   release:
     needs: build
