@@ -22,7 +22,7 @@ jobs:
         run: Expand-Archive -Path "ahk.zip" -DestinationPath "AutoHotkey"
 
       - name: Compile AHK Script to Executable
-        run: "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk"
+        run: "${{ github.workspace }}\\AutoHotkey\\Compiler\\Ahk2Exe.exe" /in "${{ github.workspace }}\\Jiggler.ahk"
 
       - name: Verify Path
         run: Get-ChildItem -Path "${{ github.workspace }}" -Recurse
