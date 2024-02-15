@@ -21,10 +21,13 @@ jobs:
       - name: Extract AutoHotkey
         run: Expand-Archive -Path "ahk.zip" -DestinationPath "AutoHotkey"
 
+      - name: Verify Unzip
+        run: Get-ChildItem -Path "${{ github.workspace }}" -Recurse
+
       - name: Compile AHK Script to Executable
         run: "${{ github.workspace }}\\AutoHotkey\\Compiler\\Ahk2Exe.exe" /in "${{ github.workspace }}\\Jiggler.ahk"
 
-      - name: Verify Path
+      - name: Verify Compiled File
         run: Get-ChildItem -Path "${{ github.workspace }}" -Recurse
 
       - name: Upload Compiled Executable
