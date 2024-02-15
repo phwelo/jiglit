@@ -1,6 +1,6 @@
 Following config items are available, these are default values:
 ```autohotkey
-appclass = TeamsWebView  ; Class of the application to activate, from Window Spy
+appclass = Chrome_WidgetWin_1  ; Class of the application to activate, from Window Spy
 waitTimeSeconds := 90  ; Idle time before the script activates
 movementSpeed := 20  ; Speed of mouse movement, lower is faster. Looks cooler slower, but less responsive to interruption
 countdowntime := 15  ; Time for which to display countdown tooltip
