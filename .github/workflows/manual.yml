@@ -54,6 +54,8 @@ jobs:
   release:
     needs: build
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
