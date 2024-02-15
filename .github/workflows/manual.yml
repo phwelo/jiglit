@@ -29,7 +29,7 @@ jobs:
 
       - name: Compile AHK Script to Executable and Check Success
         run: |
-          & "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk" /out "${{ github.workspace }}\Jiggler.exe"
+          & "${{ github.workspace }}\AutoHotkey\Compiler\Ahk2Exe.exe" /in "${{ github.workspace }}\Jiggler.ahk" /out "${{ github.workspace }}\Jiggler.exe" /base "${{ github.workspace }}\AutoHotkey\Compiler\ANSI 32-bit.bin"
           if ($?) {
             Write-Host "Compilation reported success"
           } else {
