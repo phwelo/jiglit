@@ -1,100 +1,88 @@
 ﻿#Persistent
+
+; Effectively the Main{}
 SetTimer, CheckIdle, 1000
+configFile := "config.ini" ; Specify the path to your INI file
 
-; Configuration
-appclass = TeamsWebView  ; Class of the application to activate, from Window Spy
-waitTimeSeconds := 90  ; Idle time before the script activates
-movementSpeed := 20  ; Speed of mouse movement, lower is faster. Looks cooler slower, but less responsive to interruption
-countdowntime := 15  ; Time for which to display countdown tooltip
-osdmsg = Hold a mouse button to wake
-transcolor = "0f0f0f"
-fontsize = 30
-fontcolor = cWhite
-;   "cBlack",
-;   "cWhite",
-;   "cRed",
-;   "cGreen",
-;   "cBlue",
-;   "cYellow",
-;   "cMagenta",
-;   "cFuchsia",
-;   "cCyan",
-;   "cAqua",
-;   "cSilver",
-;   "cGray",
-;   "cGrey",
-;   "cMaroon",
-;   "cOlive",
-;   "cPurple",
-;   "cTeal",
-;   "cNavy",
-;   "cLime"
-
-font = Times New Roman
-;   "Arial",
-;   "Verdana",
-;   "Times New Roman",
-;   "Courier New",
-;   "Calibri",
-;   "Cambria",
-;   "Segoe UI"
-
-countSize = 12
-countColor = cWhite
-countFont = Arial
+; Read each setting from the INI file
+IniRead, waitTimeSeconds, %configFile%, Settings, waitTimeSeconds
+IniRead, movementSpeed, %configFile%, Settings, movementSpeed
+IniRead, countdownTime, %configFile%, Settings, countdownTime
+IniRead, osdMsg, %configFile%, Settings, osdMsg
+IniRead, transColor, %configFile%, Settings, transColor
+IniRead, fontSize, %configFile%, Settings, fontSize
+IniRead, fontColor, %configFile%, Settings, fontColor
+IniRead, font, %configFile%, Settings, font
+IniRead, boxWidth, %configFile%, Settings, boxWidth
+IniRead, boxHeight, %configFile%, Settings, boxHeight
+IniRead, xStart, %configFile%, Settings, xStart
+IniRead, yStart, %configFile%, Settings, yStart
+IniRead, username, %configFile%, Settings, username
+IniRead, coords, %configFile%, Settings, coords
+IniRead, icon, %configFile%, Settings, icon
+coordinates := LoadCoordinatesFromFile("coords")
 
 ; Initialize variables
-Menu, Tray, Icon, C:\Windows\explorer.exe, 13 ; 13 = globe, 
-stepSize := 1000
-screenWidth := A_ScreenWidth
-movementWidth := screenWidth * 0.4  ; 40% of the screen width
-startPosX := (screenWidth - movementWidth) / 2
-endPosX := startPosX + movementWidth
-currentPosX := startPosX
-direction := 1
+Menu, Tray, Icon, %icon%
 moving := false
 
 F12::
-Tooltip
-Pause
-return
+    Tooltip
+    Pause
+    return
 
 ShowOSD(text) {
-    global fontcolor, font, fontsize, transcolor
-    Gui, osd:New, +AlwaysOnTop -Caption +ToolWindow +LastFound +Owner  ; Always on top, no window borders, and not appear in taskbar
-    Gui, osd:Color, transcolor
-    Gui, osd:Font, s%fontsize% fontcolor, %font%
-    textOptions := fontcolor . " Center"
-    Gui, osd:Add, Text, %textOptions%, %text%
-    Gui, osd:Show, NoActivate Center
-    Gui_ID := WinExist()  ; Correctly capture the GUI window's ID
-    WinSet, TransColor, transcolor, ahk_id %Gui_ID% 
+    global fontsize, transcolor, osdText, fontcolor, font, xStart, yStart, boxheight, boxwidth
+    screenHeight := A_ScreenHeight  ; Get the screen height
+
+    if !WinExist("OSD")
+    {
+        Gui, osd:New, +LastFound +AlwaysOnTop -Caption +ToolWindow ; +ToolWindow for no taskbar icon, -Caption for borderless
+        Gui, osd:Color, %transcolor%
+        WinSet, TransColor, %transcolor% 200
+        Gui, osd:Font, s%fontsize% %fontcolor%, %font% ; Set the font size to 9 and color to white
+        Gui, osd:Add, Text, vosdText Center, %text%... 
+        xPos := xStart
+        yPos := screenHeight + yStart
+        Gui, osd:Show, w%boxwidth% h%boxheight% x%xPos% y%yPos% , OSD ; Show the GUI near the bottom left
+    }
+    else
+    {
+        ; Update the text of the existing Text control
+        GuiControl, osd:, osdText, %text%...
+    }
     return
 }
 
 RemoveOSD:
-    Gui, Destroy
+    Gui, osd:Hide
     return
 
-    CheckIdle:
+CheckIdle:
     global countdowntime, moving, waitTimeSeconds
+    RunPowerShellScript()
+    sleep 500
+    statusContent := GetStatus()
+
+    if (!InStr(statusContent, "Available"))
+    {
+        moving := false
+        return
+    }
     idleTime := GetIdleTime()
     remainingTime := (waitTimeSeconds * 1000 - idleTime) / 1000  ; Calculate remaining time in seconds
-
-    ; Check if we're within the final 5 seconds countdown and not moving yet
+    ; Check if we're within the final X seconds countdown and not moving yet
     if (remainingTime <= countdowntime && remainingTime > 0 && !moving)
     {
-        ; Round the remaining time to the nearest second
         roundedRemainingTime := Round(remainingTime)
         ; Display the countdown text on a transparent background
         ShowCountdown(roundedRemainingTime)
         Sleep, 1000  ; Update every second
-        return  ; Ensure the loop continues checking without proceeding further
+        return
     }
     else if (idleTime >= waitTimeSeconds * 1000 && !moving)
     {
         HideCountdown()  ; Clear any existing countdown display
-        Gosub, ActivateApp
         moving := true
         Gosub, MoveMouseCursor
     }
@@ -105,48 +93,53 @@ RemoveOSD:
     else
     {
         HideCountdown()  ; Ensure the countdown display is cleared if not in the final countdown
-        sleep 200
+        sleep 500
     }
 return
+
+GetStatus() {
+    ; Ensure the file exists
+    if !FileExist("status") {
+        MsgBox, % "File not found: " "status"
+        return ""  ; Return an empty string if the file does not exist
+    }
+    FileRead, fileContents, status
+    return %fileContents%
+}
 
 ShowCountdown(remainingTime) {
-    global countSize, countColor, countFont, transcolor
+    global fontsize, transcolor, fontcolor, font, CountdownText, xStart, yStart, boxheight, boxwidth
     screenHeight := A_ScreenHeight  ; Get the screen height
-    screenWidth := A_ScreenWidth  ; Get the screen width
-    Gui, Countdown:New, +AlwaysOnTop -Caption +ToolWindow +LastFound +Owner +0x80000
-    Gui, Countdown:Color, %transcolor%
-    Gui, Countdown:Font, s%countSize% %countColor%, %countFont%
-    Gui, Countdown:Add, Text, % "Center " . countColor, % "Away mode in " . remainingTime . "..."
-    
-    ; Calculate positions for the GUI
-    xPos := screenWidth - 210  ; Calculate x position
-    yPos := screenHeight - 128  ; Calculate y position to avoid overlapping with the taskbar
-    
-    Gui, Countdown:Show, NoActivate x%xPos% y%yPos% w200 h50  ; Show the GUI
-    Gui_ID := WinExist()  ; Correctly capture the GUI window's ID
-    
-    WinSet, TransColor, %transcolor% 255, ahk_id %Gui_ID%  ; Apply transparency to the specified background color
+    text = Move mode in %remainingTime%...
+    ; Check if GUI exists, if not create it
+    if !WinExist("Countdown")
+    {
+        Gui, tb:New, +LastFound +AlwaysOnTop -Caption +ToolWindow ; +ToolWindow for no taskbar icon, -Caption for borderless
+        Gui, tb:Color, %transcolor%
+        WinSet, TransColor, %transcolor% 200
+        Gui, tb:Font, s%fontsize% %fontcolor%, %font% ; Set the font size to 9 and color to white
+        Gui, tb:Add, Text, vCountdownText Center, %text%
+        xPos := xStart ; Small x value to keep it near the left edge
+        yPos := screenHeight + yStart ; screenHeight minus GUI height minus a little padding (e.g., 10 pixels)
+        Gui, tb:Show, w%boxwidth% h%boxheight% x%xPos% y%yPos% , Countdown ; Show the GUI near the bottom left
+    }
+    else
+    {
+        ; Update the text of the existing Text control
+        GuiControl, tb:, CountdownText, %text%
+    }
+    return
 }
-
 
 HideCountdown() {
-    Gui, Countdown:Destroy  ; Close the countdown GUI
+    Gui, tb:Destroy
 }
-
-
-
-ActivateApp:
-    global appclass
-    If WinExist("ahk_class " . appclass)
-    {
-        WinActivate
-    }
-return
 
 CheckForInterrupt() {
     global moving  ; Access the global moving variable
-    ; Check for user input (mouse click or space bar press) to exit the loop
-    if (GetKeyState("LButton", "P") || GetKeyState("RButton", "P") || GetKeyState("Space", "P")) {
+    ; Check for user input (mouse click or space bar press) to exit the loop 
+    if (GetKeyState("LButton", "P") || GetKeyState("RButton", "P") ||  GetKeyState("Escape", "P") || GetKeyState("LControl", "P") || GetKeyState("RControl", "P") || GetKeyState("LAlt", "P") || GetKeyState("RAlt", "P"))
+    {
         Gosub, RemoveOSD
         moving := false
         return true  ; Indicate that an interrupt has occurred
@@ -156,25 +149,27 @@ CheckForInterrupt() {
 
 MoveMouseCursor:
     ShowOSD(osdmsg)
+    global coordinates, movementSpeed
     Loop
     {
-        if (CheckForInterrupt())
-            return
+        for index, coord in coordinates
+        {
+            MouseMove, coord.x, coord.y + 20, movementSpeed
 
-        ; Adjust the mouse position and move it
-        MouseMove, currentPosX, A_ScreenHeight / 2, movementSpeed  ; Use the movementSpeed variable
-
-        if (CheckForInterrupt())
-            return
-
-        currentPosX += stepSize * direction
-        if (currentPosX >= endPosX || currentPosX <= startPosX) {
-            direction *= -1  ; Change direction at the boundaries
-            currentPosX := direction == 1 ? startPosX : endPosX
+            if (CheckForInterrupt())
+                return
+        }
+        Sleep, 100 ; Pause for a moment before reversing the path
+        ; Move backward along the path
+        loop, % coordinates.MaxIndex()
+        {
+            coord := coordinates[coordinates.MaxIndex() + 1 - A_Index]
+            MouseMove, coord.x, coord.y + 20, movementSpeed
+            if (CheckForInterrupt())
+                return
         }
     }
 return
-
 
 GetIdleTime(){
     VarSetCapacity(lii, 8, 0)  ; Prepare the structure for the DllCall
@@ -182,4 +177,50 @@ GetIdleTime(){
     if !DllCall("GetLastInputInfo", "Ptr", &lii)
         return -1  ; Error handling
     return A_TickCount - NumGet(lii, 4, "UInt")  ; Calculate and return idle time
+}
+
+LoadCoordinates(filePath) {
+    ; Initialize an empty array to hold the coordinates
+    local coordinates := []
+    if !FileExist(filePath)
+    {
+        MsgBox, % "File not found: " filePath
+        return coordinates ; Return an empty array if file doesn't exist
+    }
+    FileRead, csvContent, % filePath
+    lines := StrSplit(csvContent, "`n", "`r")
+    for _, line in lines
+    {
+        if (line = "")
+            continue
+        xy := StrSplit(line, ",")
+        x := xy[1]
+        y := xy[2]
+        coordinates.Push({"x": x, "y": y})
+    }
+    return coordinates
+}
+
+RunPowerShellScript() {
+    global username
+    scriptPath := ".\status.ps1"
+    command := "powershell.exe -NoProfile -ExecutionPolicy Bypass -File """ . A_ScriptDir . "\" . scriptPath . """ -username " . username
+    Run, %command%, , Hide  ; Use 'Hide' to run the script without showing the PowerShell window
+}
+
+LoadCoordinatesFromFile(filePath) {
+    local coordinates := []
+    if !FileExist(filePath) {
+        MsgBox, % "File not found: " filePath
+        
+    }
+    FileRead, fileContent, %filePath%
+    lines := StrSplit(fileContent, "`n", "`r")
+    for _, line in lines {
+        if (line = "")
+            continue
+        xy := StrSplit(line, ",")
+        coordinates.Push({"x": Trim(xy[1]), "y": Trim(xy[2])})
+    }
+    return coordinates
 }

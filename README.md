@@ -1,21 +1,31 @@
-Following config items are available, these are default values:
+# Jiglit
+A mouse jiggler for Windows, written in AutoHotkey. Hold Ctrl, Alt, or Mouse Buttons to stop jiggling.
+
+## Config
+Configuration items are found in `config.ini`
 ```autohotkey
-appclass = Chrome_WidgetWin_1  ; Class of the application to activate, from Window Spy
-waitTimeSeconds := 90  ; Idle time before the script activates
-movementSpeed := 20  ; Speed of mouse movement, lower is faster. Looks cooler slower, but less responsive to interruption
-countdowntime := 15  ; Time for which to display countdown tooltip
-osdmsg = Hold space or mouse button to deactivate
-transcolor = "0f0f0f"
-fontsize = 30
-fontcolor = cWhite
-font = Times New Roman
-countSize = 12
-countColor = cWhite
-countFont = Arial
+[Settings]
+waitTimeSeconds=10
+movementSpeed=20
+countdownTime=7
+osdMsg=Jiggle jiggle...
+transColor=0f0f0f
+fontSize=9
+fontColor=cWhite
+font=Arial
+boxWidth=200
+boxHeight=40
+xStart=160
+yStart=-48
+username=daniel.agans@wendys.com
+coords_pattern=coords
+icon=jiglit.ico
 
 ```
 
-## Colors
+
+## Available Colors
+Color names for text values in `config.ini`
 ```
 cBlack
 cWhite
@@ -38,7 +48,8 @@ cNavy
 cLime
 ```
 
-## Fonts
+## Available Fonts
+Font values supported in `config.ini`
 ```
 Arial
 Verdana
